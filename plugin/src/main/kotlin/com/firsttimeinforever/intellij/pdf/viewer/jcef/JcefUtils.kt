@@ -100,6 +100,8 @@ internal object JcefUtils {
   fun createDefaultConsoleMessageListener(logger: Logger): (JcefConsoleMessage) -> Unit {
     return {
       val formattedMessage = formatMessage(it)
+      println(formattedMessage)
+      logger.warn("createDefaultConsoleMessageListener:"+formattedMessage)
       when (it.level) {
         CefSettings.LogSeverity.LOGSEVERITY_ERROR, CefSettings.LogSeverity.LOGSEVERITY_FATAL -> logger.error(formattedMessage)
         CefSettings.LogSeverity.LOGSEVERITY_INFO -> logger.info(formattedMessage)

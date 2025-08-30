@@ -6,6 +6,7 @@ import kotlin.js.json
 
 class ViewerAdapter(val viewerApp: PdfViewerApplication) {
   fun addEventListener(event: String, listener: (dynamic) -> Unit) {
+    console.log("add eventListener")
     viewerApp.eventBus.on(event, listener)
   }
 
@@ -16,6 +17,7 @@ class ViewerAdapter(val viewerApp: PdfViewerApplication) {
     get() = viewerApp.pdfViewer.currentPageNumber
     set(value) {
       require(value in 1..pagesCount)
+      console.log("Going to page $value")
       viewerApp.pdfViewer.currentPageNumber = value
     }
 
@@ -43,6 +45,8 @@ class ViewerAdapter(val viewerApp: PdfViewerApplication) {
   // Basically direct implementations from the old code
 
   fun increaseScale() {
+    println("Increasing scale")
+    console.log("console log Increasing scale")
     viewerApp.asDynamic().toolbar.items.zoomIn.click()
   }
 

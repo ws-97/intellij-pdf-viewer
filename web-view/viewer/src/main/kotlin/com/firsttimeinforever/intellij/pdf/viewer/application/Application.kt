@@ -47,7 +47,7 @@ class Application(private val viewer: ViewerAdapter) {
       notifyViewStateChanged(ViewStateChangeReason.SIDEBAR_VIEW_MODE)
     }
     pipe.subscribe<IdeMessages.GotoPage> {
-      console.log(it)
+      console.log("pipe.subscribe<IdeMessages.GotoPage>:"+it)
       when (it.direction) {
         PageGotoDirection.FORWARD -> viewer.goToNextPage()
         PageGotoDirection.BACKWARD -> viewer.goToPreviousPage()
@@ -198,6 +198,7 @@ class Application(private val viewer: ViewerAdapter) {
   }
 
   private fun collectViewState(): ViewState {
+    console.log("123 Collecting view state")
     return ViewState(
       viewer.currentPageNumber,
       viewer.zoomState.copy(mode = ZoomMode.CUSTOM),
@@ -214,10 +215,17 @@ class Application(private val viewer: ViewerAdapter) {
 
   @Suppress("UNUSED_PARAMETER")
   private fun pageChangeListener(event: dynamic) {
+    println("pageChangeListener Page number changed"+event+ " current.pageNumber:"+viewer.currentPageNumber)
+    // 保存当前页码到 localStorage
+    fileName.let { name ->
+      window.localStorage.setItem("pdf_page_$name", viewer.currentPageNumber.toString())
+    }
+
     notifyViewStateChanged(ViewStateChangeReason.PAGE_NUMBER)
   }
 
   private fun notifyViewStateChanged(reason: ViewStateChangeReason = ViewStateChangeReason.UNSPECIFIED) {
+    println("notifyViewStateChanged View state changed:"+reason)
     pipe.send(BrowserMessages.ViewStateChanged(collectViewState(), reason))
   }
 
@@ -302,6 +310,18 @@ class Application(private val viewer: ViewerAdapter) {
         addEventListener(ViewerEvents.ZOOM_OUT, ::zoomChangeListener)
         addEventListener(ViewerEvents.ZOOM_RESET, ::zoomChangeListener)
       }
+
+      // 恢复上次浏览的页码
+      fileName.let { name ->
+        val savedPage = window.localStorage.getItem("pdf_page_$name")
+        if (savedPage != null) {
+          val pageNumber = savedPage.toIntOrNull()
+          if (pageNumber != null && pageNumber > 0 && pageNumber <= viewer.pagesCount) {
+            viewer.currentPageNumber = pageNumber
+          }
+        }
+      }
     }
   }
+
 }
