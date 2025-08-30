@@ -1,19 +1,21 @@
 package com.firsttimeinforever.intellij.pdf.viewer.actions
 
 import com.intellij.ide.DataManager
+import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import java.awt.Component
 import javax.swing.JComponent
 
 internal object PdfActionUtils {
-  fun createActionToolbar(groupId: String, place: String, targetComponent: JComponent, horizontal: Boolean = true): ActionToolbar {
-    val group = ActionManager.getInstance().getAction(groupId)
+  fun createActionToolbar(groupId: String, place: String, targetComponent: JComponent, horizontal: Boolean = true, customizable: Boolean = true): ActionToolbar {
+    val group = if (customizable) CustomActionsSchema.getInstance().getCorrectedAction(groupId) else ActionManager.getInstance().getAction(groupId)
     checkNotNull(group)
     check(group is ActionGroup)
     return createActionToolbar(group, place, targetComponent, horizontal)
   }
 
-  fun createActionToolbar(group: ActionGroup, place: String, targetComponent: JComponent, horizontal: Boolean = true): ActionToolbar {
+  fun createActionToolbar(group: ActionGroup, place: String, targetComponent: JComponent, horizontal: Boolean = true, customizable: Boolean = true): ActionToolbar {
     val toolbar = ActionManager.getInstance().createActionToolbar(place, group, horizontal)
     toolbar.targetComponent = targetComponent
     return toolbar
@@ -21,14 +23,16 @@ internal object PdfActionUtils {
 
   fun performAction(action: AnAction, component: Component) {
     val context = DataManager.getInstance().getDataContext(component)
-    action.actionPerformed(
+    ActionUtil.performAction(
+      action,
       AnActionEvent(
-        null,
         context,
-        ActionPlaces.UNKNOWN,
         Presentation(),
-        ActionManager.getInstance(),
-        0
+        ActionPlaces.UNKNOWN,
+        ActionUiKind.TOOLBAR,
+        null,
+        0,
+        ActionManager.getInstance()
       )
     )
   }

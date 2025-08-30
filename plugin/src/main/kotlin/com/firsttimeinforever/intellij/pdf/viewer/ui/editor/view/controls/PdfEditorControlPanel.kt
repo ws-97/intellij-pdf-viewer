@@ -32,7 +32,6 @@ class PdfEditorControlPanel: JPanel(GridLayout()), Disposable {
     rightPanel.layout = FlowLayout(FlowLayout.RIGHT, 0, 0)
 
     rightPanel.add(rightToolbar.component)
-    rightToolbar.adjustTheSameSize(true)
     rightPanel.preferredSize = Dimension(Int.MAX_VALUE, 24)
     add(rightPanel, Component.RIGHT_ALIGNMENT)
   }

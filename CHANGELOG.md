@@ -1,6 +1,30 @@
 # Intellij PDF Viewer Plugin Changelog
+
+## 0.17.1
+This release adds support for customizing the inverse search shortcut and the toolbar.
+
+- In the keymap, you can now change the inverse search shortcut (to navigate from pdf to LaTeX) to any other mouse shortcut
+- Add support for customizing the toolbar (right-click on the toolbar to open the menu)
+- Update dependencies and replace deprecated code
+- Update Sentry implementation for easy reporting of exceptions
+
+## 0.17.0
+This release contains many fixes and improvements, all of which were contributed by [Liu Dongmiao](https://github.com/liudongmiao)
+
+- Add (experimental) support for viewing pdfs in a Code With Me session
+- Add context menu to open the pdf in PDFium, the default Chrome PDF viewer
+- Improve scrollbar styling
+- Improve PDF.js installation in plugin build
+- Fix page number status bar widget
+- Update PDF.js to the latest version
+- Support viewing pdf files on a remote host
+- Support pdf file paths with special characters
+
+## 0.16.1
+- Support pdfs without an embedded font, by [Liu Dongmiao](https://github.com/liudongmiao).
+
 ## 0.16.0
-- Support 2024.1 ([#90](https://github.com/FirstTimeInForever/intellij-pdf-viewer/issues/90))
+- Support 2024.1 ([#90](https://github.com/FirstTimeInForever/intellij-pdf-viewer/issues/90), [#98](https://github.com/FirstTimeInForever/intellij-pdf-viewer/issues/98))
 
 ## 0.15.0
 - Fix scrolling performance on Mac ([#51](https://github.com/FirstTimeInForever/intellij-pdf-viewer/issues/51))
