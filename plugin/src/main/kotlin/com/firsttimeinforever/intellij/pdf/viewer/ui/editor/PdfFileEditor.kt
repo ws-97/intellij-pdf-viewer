@@ -1,12 +1,18 @@
 package com.firsttimeinforever.intellij.pdf.viewer.ui.editor
 
+import com.firsttimeinforever.intellij.pdf.viewer.model.ViewState
+import com.firsttimeinforever.intellij.pdf.viewer.model.ViewStateChangeReason
 import com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerSettings
 import com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerSettingsListener
 import com.firsttimeinforever.intellij.pdf.viewer.structureView.PdfStructureViewBuilder
 import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfEditorViewComponent
+import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfJcefPreviewController
+import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfViewStateChangedListener
 import com.intellij.diff.util.FileEditorBase
 import com.intellij.ide.structureView.StructureViewBuilder
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -21,6 +27,7 @@ class PdfFileEditor(project: Project, private val virtualFile: VirtualFile) : Fi
   val viewComponent = PdfEditorViewComponent(project, virtualFile)
   private val messageBusConnection = project.messageBus.connect()
   private val fileChangedListener = FileChangedListener(PdfViewerSettings.instance.enableDocumentAutoReload)
+  private var currentPage = 1
 
   init {
     Disposer.register(this, viewComponent)
@@ -29,6 +36,15 @@ class PdfFileEditor(project: Project, private val virtualFile: VirtualFile) : Fi
     messageBusConnection.subscribe(PdfViewerSettings.TOPIC, PdfViewerSettingsListener {
       fileChangedListener.isEnabled = it.enableDocumentAutoReload
     })
+    
+    // 监听页码变化，保存当前页码
+    viewComponent.controller?.let { controller ->
+      project.messageBus.connect(this).subscribe(PdfViewStateChangedListener.TOPIC, object : PdfViewStateChangedListener {
+        override fun viewStateChanged(controller: PdfJcefPreviewController, state: ViewState, reason: ViewStateChangeReason) {
+          currentPage = state.page
+        }
+      })
+    }
   }
 
   override fun getName(): String = NAME
@@ -55,6 +71,26 @@ class PdfFileEditor(project: Project, private val virtualFile: VirtualFile) : Fi
 
   override fun getStructureViewBuilder(): StructureViewBuilder {
     return PdfStructureViewBuilder(this)
+  }
+  
+  override fun getState(level: FileEditorStateLevel): FileEditorState {
+    logger.debug("Saving state for ${virtualFile.path}, current page: $currentPage")
+    return PdfFileEditorState(currentPage)
+  }
+  
+  override fun setState(state: FileEditorState) {
+    if (state is PdfFileEditorState) {
+      val pageToRestore = state.getCurrentPage()
+      logger.debug("Restoring state for ${virtualFile.path}, page: $pageToRestore")
+      // 延迟恢复页码，等待视图加载完成
+      viewComponent.controller?.let { controller ->
+        javax.swing.SwingUtilities.invokeLater {
+          // 先更新页码状态，然后重新加载
+          controller.updateViewState(pageToRestore)
+          controller.reload(tryToPreserveState = true)
+        }
+      }
+    }
   }
 
   companion object {

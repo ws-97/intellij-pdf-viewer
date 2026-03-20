@@ -66,6 +66,10 @@ class PdfJcefPreviewController(val project: Project, val virtualFile: VirtualFil
    */
   var viewState = ViewState()
     private set
+  
+  fun updateViewState(page: Int) {
+    viewState = viewState.copy(page = page)
+  }
 
   var viewProperties = ViewProperties()
     private set
