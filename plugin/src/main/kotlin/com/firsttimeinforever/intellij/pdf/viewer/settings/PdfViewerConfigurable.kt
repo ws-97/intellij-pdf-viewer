@@ -2,11 +2,14 @@ package com.firsttimeinforever.intellij.pdf.viewer.settings
 
 import com.firsttimeinforever.intellij.pdf.viewer.PdfViewerBundle
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
 class PdfViewerConfigurable : Configurable {
   private var settingsForm: PdfViewerSettingsForm? = null
   private val settings = PdfViewerSettings.instance
+  
+  
 
   override fun isModified(): Boolean {
     return settingsForm?.run {
@@ -48,6 +51,7 @@ class PdfViewerConfigurable : Configurable {
 
   override fun createComponent(): JComponent? {
     settingsForm = settingsForm ?: PdfViewerSettingsForm()
+    settingsForm?.initRecentPdfPanel()
     return settingsForm
   }
 

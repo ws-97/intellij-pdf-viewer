@@ -4,6 +4,7 @@ import com.firsttimeinforever.intellij.pdf.viewer.model.ViewState
 import com.firsttimeinforever.intellij.pdf.viewer.model.ViewStateChangeReason
 import com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerSettings
 import com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerSettingsListener
+import com.intellij.openapi.components.service
 import com.firsttimeinforever.intellij.pdf.viewer.structureView.PdfStructureViewBuilder
 import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfEditorViewComponent
 import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfJcefPreviewController
@@ -23,7 +24,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import javax.swing.JComponent
 
 // TODO: Implement state persistence
-class PdfFileEditor(project: Project, private val virtualFile: VirtualFile) : FileEditorBase(), DumbAware {
+class PdfFileEditor(project: Project, val virtualFile: VirtualFile) : FileEditorBase(), DumbAware {
   val viewComponent = PdfEditorViewComponent(project, virtualFile)
   private val messageBusConnection = project.messageBus.connect()
   private val fileChangedListener = FileChangedListener(PdfViewerSettings.instance.enableDocumentAutoReload)
@@ -36,12 +37,20 @@ class PdfFileEditor(project: Project, private val virtualFile: VirtualFile) : Fi
     messageBusConnection.subscribe(PdfViewerSettings.TOPIC, PdfViewerSettingsListener {
       fileChangedListener.isEnabled = it.enableDocumentAutoReload
     })
-    
+
     // 监听页码变化，保存当前页码
     viewComponent.controller?.let { controller ->
       project.messageBus.connect(this).subscribe(PdfViewStateChangedListener.TOPIC, object : PdfViewStateChangedListener {
         override fun viewStateChanged(controller: PdfJcefPreviewController, state: ViewState, reason: ViewStateChangeReason) {
           currentPage = state.page
+          // 保存 PDF 浏览进度
+          try {
+            val totalPages = controller.viewProperties.pagesCount
+            val recentPdfService = project.service<com.firsttimeinforever.intellij.pdf.viewer.settings.RecentPdfService>()
+            recentPdfService.addRecentPdf(virtualFile.path, currentPage, totalPages)
+          } catch (e: Throwable) {
+            logger.warn("保存 PDF 浏览进度失败: ${virtualFile.path}", e)
+          }
         }
       })
     }
@@ -72,12 +81,12 @@ class PdfFileEditor(project: Project, private val virtualFile: VirtualFile) : Fi
   override fun getStructureViewBuilder(): StructureViewBuilder {
     return PdfStructureViewBuilder(this)
   }
-  
+
   override fun getState(level: FileEditorStateLevel): FileEditorState {
     logger.debug("Saving state for ${virtualFile.path}, current page: $currentPage")
     return PdfFileEditorState(currentPage)
   }
-  
+
   override fun setState(state: FileEditorState) {
     if (state is PdfFileEditorState) {
       val pageToRestore = state.getCurrentPage()

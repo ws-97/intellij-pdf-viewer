@@ -16,14 +16,17 @@ import com.intellij.ui.jcef.JBCefJSQuery
 class JcefBrowserMessagePipe(private val browser: JBCefBrowser) : MessagePipe {
   private val query = checkNotNull(JBCefJSQuery.create(browser as JBCefBrowserBase))
   private val receiveSubscribers = hashMapOf<String, MutableList<MessageReceivedHandler>>()
+  private var viewLoaded = false
 
   init {
     query.addUnitHandler(::receiveHandler)
     browser.addLoadEndHandler {
       // FIXME: Implement generic way of packing/unpacking messages into strings
       val code = query.inject("raw")
-      browser.executeJavaScript("window['$ideSendFunctionName'] = raw => $code;")
-      browser.executeJavaScript("window.dispatchEvent(new Event('IdeReady'));")
+      browser.executeJavaScript("window['$ideSendFunctionName'] = raw => $code;");
+      browser.executeJavaScript("window['$browserSendFunctionName'] = window['$browserSendFunctionName'] || (raw => {});");
+      browser.executeJavaScript("window.dispatchEvent(new Event('IdeReady'))")
+      viewLoaded = true
     }
   }
 
@@ -41,6 +44,10 @@ class JcefBrowserMessagePipe(private val browser: JBCefBrowser) : MessagePipe {
   }
 
   override fun send(type: String, data: String) {
+    if (!viewLoaded) {
+      logger.debug("Skipping message send, view not loaded yet: $type")
+      return
+    }
     val raw = MessagePipeSupport.MessagePacker.pack(type, data)
     logger.debug("Sending message: $raw")
     browser.executeJavaScript("$browserSendFunctionName('$raw')")

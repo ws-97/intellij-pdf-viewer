@@ -10,8 +10,11 @@ import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.*
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Dimension
 import javax.swing.DefaultComboBoxModel
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.border.EmptyBorder
 
 class PdfViewerSettingsForm : JPanel() {
   private val settings
@@ -21,6 +24,8 @@ class PdfViewerSettingsForm : JPanel() {
 
   val enableDocumentAutoReload = properties.property(settings.enableDocumentAutoReload)
   val defaultSidebarViewMode = properties.property(settings.defaultSidebarViewMode)
+  
+  private var recentPdfPanel: RecentPdfPanel? = null
 
   private val generalSettingsGroup = panel {
     group(PdfViewerBundle.message("pdf.viewer.settings.group.general")) {
@@ -33,9 +38,8 @@ class PdfViewerSettingsForm : JPanel() {
           label.text = when (value) {
             SidebarViewMode.NONE -> "Closed"
             SidebarViewMode.THUMBNAILS -> "Thumbnails"
-            // SidebarViewMode.OUTLINE -> "Outline (document structure)"
+            SidebarViewMode.OUTLINE -> "Outline (document structure)"
             SidebarViewMode.ATTACHMENTS -> "Attachments"
-            else -> "Outline (document structure)"
           }
         }
         comboBox(DefaultComboBoxModel(SidebarViewMode.entries.toTypedArray()), renderer)
@@ -43,6 +47,8 @@ class PdfViewerSettingsForm : JPanel() {
       }
     }
   }
+  
+  // 移除了重复的 recentDocumentsGroup 声明，现在由 UI DSL 动态创建
 
   val invertDocumentColorsWithTheme = properties.property(settings.invertColorsWithTheme).apply {
     afterPropagation {
@@ -128,9 +134,33 @@ class PdfViewerSettingsForm : JPanel() {
     layout = BorderLayout()
     add(panel {
       row { cell(generalSettingsGroup).align(AlignX.FILL) }
+      row {
+        val titleLabel = JLabel(PdfViewerBundle.message("pdf.viewer.settings.group.recent.documents"))
+        titleLabel.font = titleLabel.font.deriveFont(java.awt.Font.BOLD)
+        titleLabel.border = EmptyBorder(10, 0, 5, 0)
+        cell(titleLabel).align(AlignX.FILL)
+      }
+      // 将最近浏览的PDF面板添加到UI中
+      row {
+        cell(recentPdfPanel ?: JPanel()).align(AlignX.FILL).resizableColumn()
+      }
       row { cell(invertColorsGroup).align(AlignX.FILL) }
       row { cell(customColorsGroup).align(AlignX.FILL) }
     })
+  }
+  
+  fun initRecentPdfPanel() {
+    if (recentPdfPanel == null) {
+      recentPdfPanel = RecentPdfPanel()
+      recentPdfPanel?.let { panel ->
+        // 重新初始化UI以确保布局正确
+        removeAll()
+        layout = BorderLayout()
+        add(panel, BorderLayout.SOUTH)
+        revalidate()
+        repaint()
+      }
+    }
   }
 
   fun reset() {
