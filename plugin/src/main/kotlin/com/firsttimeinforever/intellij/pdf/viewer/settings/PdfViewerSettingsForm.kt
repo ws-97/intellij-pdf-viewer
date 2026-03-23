@@ -48,6 +48,27 @@ class PdfViewerSettingsForm : JPanel() {
     }
   }
   
+  // 最近浏览的 PDF 面板组 - 单独创建以便延迟初始化
+  private fun createRecentPdfGroup(): JPanel {
+    return panel {
+      // 添加最近浏览的 PDF 文档标题
+      row {
+        val titleLabel = JLabel(PdfViewerBundle.message("pdf.viewer.settings.group.recent.documents"))
+        titleLabel.font = titleLabel.font.deriveFont(java.awt.Font.BOLD)
+        titleLabel.border = EmptyBorder(10, 0, 5, 0)
+        cell(titleLabel).align(AlignX.FILL)
+      }
+      // 添加最近浏览的 PDF 面板
+      row {
+        val panelToUse = recentPdfPanel ?: run {
+          initRecentPdfPanel()
+          recentPdfPanel!!
+        }
+        cell(panelToUse).align(AlignX.FILL).resizableColumn()
+      }
+    }
+  }
+  
   // 移除了重复的 recentDocumentsGroup 声明，现在由 UI DSL 动态创建
 
   val invertDocumentColorsWithTheme = properties.property(settings.invertColorsWithTheme).apply {
@@ -132,18 +153,11 @@ class PdfViewerSettingsForm : JPanel() {
 
   init {
     layout = BorderLayout()
+    // 先初始化最近 PDF 面板，确保在添加到 UI 之前已经准备好
+    initRecentPdfPanel()
     add(panel {
       row { cell(generalSettingsGroup).align(AlignX.FILL) }
-      row {
-        val titleLabel = JLabel(PdfViewerBundle.message("pdf.viewer.settings.group.recent.documents"))
-        titleLabel.font = titleLabel.font.deriveFont(java.awt.Font.BOLD)
-        titleLabel.border = EmptyBorder(10, 0, 5, 0)
-        cell(titleLabel).align(AlignX.FILL)
-      }
-      // 将最近浏览的PDF面板添加到UI中
-      row {
-        cell(recentPdfPanel ?: JPanel()).align(AlignX.FILL).resizableColumn()
-      }
+      row { cell(createRecentPdfGroup()).align(AlignX.FILL) }
       row { cell(invertColorsGroup).align(AlignX.FILL) }
       row { cell(customColorsGroup).align(AlignX.FILL) }
     })
@@ -152,15 +166,15 @@ class PdfViewerSettingsForm : JPanel() {
   fun initRecentPdfPanel() {
     if (recentPdfPanel == null) {
       recentPdfPanel = RecentPdfPanel()
-      recentPdfPanel?.let { panel ->
-        // 重新初始化UI以确保布局正确
-        removeAll()
-        layout = BorderLayout()
-        add(panel, BorderLayout.SOUTH)
-        revalidate()
-        repaint()
-      }
     }
+  }
+  
+  /**
+   * 刷新最近阅读的 PDF 列表
+   * 在设置面板打开时调用，确保显示最新的阅读记录
+   */
+  fun refreshRecentPdfPanel() {
+    recentPdfPanel?.refresh()
   }
 
   fun reset() {

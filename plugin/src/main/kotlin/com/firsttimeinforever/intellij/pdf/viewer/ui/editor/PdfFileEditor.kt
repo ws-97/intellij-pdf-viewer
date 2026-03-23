@@ -39,20 +39,27 @@ class PdfFileEditor(project: Project, val virtualFile: VirtualFile) : FileEditor
     })
 
     // 监听页码变化，保存当前页码
-    viewComponent.controller?.let { controller ->
-      project.messageBus.connect(this).subscribe(PdfViewStateChangedListener.TOPIC, object : PdfViewStateChangedListener {
-        override fun viewStateChanged(controller: PdfJcefPreviewController, state: ViewState, reason: ViewStateChangeReason) {
-          currentPage = state.page
-          // 保存 PDF 浏览进度
-          try {
-            val totalPages = controller.viewProperties.pagesCount
-            val recentPdfService = project.service<com.firsttimeinforever.intellij.pdf.viewer.settings.RecentPdfService>()
-            recentPdfService.addRecentPdf(virtualFile.path, currentPage, totalPages)
-          } catch (e: Throwable) {
-            logger.warn("保存 PDF 浏览进度失败: ${virtualFile.path}", e)
+    // 使用延迟订阅，确保 controller 已经初始化完成
+    javax.swing.SwingUtilities.invokeLater {
+      viewComponent.controller?.let { controller ->
+        val connection = project.messageBus.connect(this)
+        connection.subscribe(PdfViewStateChangedListener.TOPIC, object : PdfViewStateChangedListener {
+          override fun viewStateChanged(controller: PdfJcefPreviewController, state: ViewState, reason: ViewStateChangeReason) {
+            currentPage = state.page
+            // 保存 PDF 浏览进度 - 只在页面变化或文档加载完成时保存
+            if (reason == ViewStateChangeReason.PAGE_NUMBER || reason == ViewStateChangeReason.UNSPECIFIED) {
+              try {
+                val totalPages = controller.viewProperties.pagesCount
+                val recentPdfService = project.service<com.firsttimeinforever.intellij.pdf.viewer.settings.RecentPdfService>()
+                recentPdfService.addRecentPdf(virtualFile.path, currentPage, totalPages)
+                logger.debug("已保存 PDF 浏览进度：${virtualFile.name}, 第 $currentPage/$totalPages 页")
+              } catch (e: Throwable) {
+                logger.warn("保存 PDF 浏览进度失败：${virtualFile.path}", e)
+              }
+            }
           }
-        }
-      })
+        })
+      }
     }
   }
 

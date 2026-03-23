@@ -52,6 +52,8 @@ class PdfViewerConfigurable : Configurable {
   override fun createComponent(): JComponent? {
     settingsForm = settingsForm ?: PdfViewerSettingsForm()
     settingsForm?.initRecentPdfPanel()
+    // 每次打开设置面板时刷新最近阅读的 PDF 列表
+    settingsForm?.refreshRecentPdfPanel()
     return settingsForm
   }
 
