@@ -31,6 +31,7 @@
 
     <customizableActionGroupProvider implementation="com.firsttimeinforever.intellij.pdf.viewer.actions.PdfCustomizableActionGroupProvider"/>
     <postStartupActivity implementation="com.firsttimeinforever.intellij.pdf.viewer.ui.widgets.PdfStatusBarProjectActivity"/>
+    <toolWindow id="PDF Viewer" anchor="right" factoryClass="com.firsttimeinforever.intellij.pdf.viewer.ui.toolwindow.PdfViewerToolWindowFactory" icon="/icons/pdfFile.svg"/>
   </extensions>
 
   <applicationListeners>

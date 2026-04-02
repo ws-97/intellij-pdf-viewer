@@ -24,6 +24,7 @@ class PdfViewerSettingsForm : JPanel() {
 
   val enableDocumentAutoReload = properties.property(settings.enableDocumentAutoReload)
   val defaultSidebarViewMode = properties.property(settings.defaultSidebarViewMode)
+  val useToolWindowMode = properties.property(settings.useToolWindowMode)
   
   private var recentPdfPanel: RecentPdfPanel? = null
 
@@ -44,6 +45,11 @@ class PdfViewerSettingsForm : JPanel() {
         }
         comboBox(DefaultComboBoxModel(SidebarViewMode.entries.toTypedArray()), renderer)
           .bindItem(defaultSidebarViewMode)
+      }
+      row {
+        checkBox("使用边缘工具窗口显示 PDF")
+          .bindSelected(useToolWindowMode)
+          .comment("启用后，PDF 文件将在右侧边缘工具窗口中打开，而不是占用编辑区域")
       }
     }
   }
@@ -180,6 +186,7 @@ class PdfViewerSettingsForm : JPanel() {
   fun reset() {
     enableDocumentAutoReload.set(settings.enableDocumentAutoReload)
     defaultSidebarViewMode.set(settings.defaultSidebarViewMode)
+    useToolWindowMode.set(settings.useToolWindowMode)
     invertDocumentColorsWithTheme.set(settings.invertColorsWithTheme)
     invertDocumentColors.set(settings.invertDocumentColors)
     documentColorsInvertIntensity.set(settings.documentColorsInvertIntensity)

@@ -21,6 +21,7 @@ class PdfViewerSettings : PersistentStateComponent<PdfViewerSettings> {
   var documentColorsInvertIntensity: Int = defaultDocumentColorsInvertIntensity
   var invertDocumentColors = false
   var invertColorsWithTheme = false
+  var useToolWindowMode = true
 
   var defaultSidebarViewMode: SidebarViewMode = SidebarViewMode.THUMBNAILS
 

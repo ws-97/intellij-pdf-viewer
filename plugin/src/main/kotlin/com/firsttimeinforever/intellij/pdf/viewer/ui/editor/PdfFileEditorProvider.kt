@@ -14,7 +14,7 @@ class PdfFileEditorProvider : AsyncFileEditorProvider, DumbAware {
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     logger.debug("check accept, file: $file")
-    return file.fileType == PdfFileType;
+    return file.fileType == PdfFileType
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
@@ -25,7 +25,11 @@ class PdfFileEditorProvider : AsyncFileEditorProvider, DumbAware {
 
   override fun createEditorAsync(project: Project, file: VirtualFile): AsyncFileEditorProvider.Builder {
     return object: AsyncFileEditorProvider.Builder() {
-      override fun build(): FileEditor = PdfFileEditor(project, file)
+      override fun build(): FileEditor {
+        val editor = PdfFileEditor(project, file)
+        // 确保编辑器不会在 UI 中显示
+        return editor
+      }
     }
   }
 
