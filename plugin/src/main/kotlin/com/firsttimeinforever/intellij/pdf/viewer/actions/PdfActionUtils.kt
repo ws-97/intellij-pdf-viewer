@@ -23,17 +23,12 @@ internal object PdfActionUtils {
 
   fun performAction(action: AnAction, component: Component) {
     val context = DataManager.getInstance().getDataContext(component)
-    ActionUtil.performAction(
+    ActionUtil.invokeAction(
       action,
-      AnActionEvent(
-        context,
-        Presentation(),
-        ActionPlaces.UNKNOWN,
-        ActionUiKind.TOOLBAR,
-        null,
-        0,
-        ActionManager.getInstance()
-      )
+      context,
+      ActionPlaces.UNKNOWN,
+      null,
+      null
     )
   }
 

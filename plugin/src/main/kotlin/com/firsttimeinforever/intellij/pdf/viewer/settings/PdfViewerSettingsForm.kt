@@ -43,7 +43,7 @@ class PdfViewerSettingsForm : JPanel() {
             SidebarViewMode.ATTACHMENTS -> "Attachments"
           }
         }
-        comboBox(DefaultComboBoxModel(SidebarViewMode.entries.toTypedArray()), renderer)
+        comboBox(DefaultComboBoxModel(arrayOf(*SidebarViewMode.values())), renderer)
           .bindItem(defaultSidebarViewMode)
       }
       row {

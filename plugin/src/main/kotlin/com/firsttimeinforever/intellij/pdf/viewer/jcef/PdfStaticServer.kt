@@ -4,7 +4,6 @@ import com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerSettings
 import com.firsttimeinforever.intellij.pdf.viewer.utility.PdfResourceLoader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.jcef.JBCefScrollbarsHelper
 import com.intellij.util.Url
 import com.intellij.util.Urls
 import com.intellij.util.io.URLUtil
@@ -107,10 +106,7 @@ internal class PdfStaticServer : HttpRequestHandler() {
     }
     val contentType = FileResponses.getContentType(targetFile)
     logger.debug("Sending internal file: $targetFile with contentType: $contentType")
-    var bytes = PdfResourceLoader.loadFromRoot(targetFile)
-    if (targetFile == "/web-view/fixes.css") {
-      bytes += JBCefScrollbarsHelper.buildScrollbarsStyle().toByteArray(Charsets.UTF_8)
-    }
+    val bytes = PdfResourceLoader.loadFromRoot(targetFile)
     val resultBuffer = Unpooled.wrappedBuffer(bytes)
     val response = response(contentType, resultBuffer)
     response.send(context.channel(), request)

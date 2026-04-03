@@ -14,7 +14,11 @@ repositories {
 }
 
 kotlin {
-  jvm()
+  jvm {
+    compilerOptions {
+      jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+  }
   js(IR) {
     browser {
       binaries.executable()

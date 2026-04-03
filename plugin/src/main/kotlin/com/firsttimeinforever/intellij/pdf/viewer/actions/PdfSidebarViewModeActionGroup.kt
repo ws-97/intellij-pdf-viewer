@@ -10,8 +10,12 @@ class PdfSidebarViewModeActionGroup : DefaultActionGroup() {
   }
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isVisible = PdfAction.hasEditorInView(event)
-    event.presentation.isEnabled = PdfAction.findController(event) != null
+    // 检查是否有编辑器或工具窗口中的控制器
+    val hasEditor = PdfAction.hasEditorInView(event)
+    val controller = PdfAction.findController(event)
+    
+    event.presentation.isVisible = hasEditor || controller != null
+    event.presentation.isEnabled = controller != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

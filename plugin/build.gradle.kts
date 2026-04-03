@@ -68,7 +68,14 @@ tasks {
   compileKotlin {
     compilerOptions {
       freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xjvm-default=all")
+      // 使用 Java 17 编译，兼容 IntelliJ IDEA 2023.1
+      jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+  }
+  
+  compileJava {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
   }
   jar {
     exclude("com/jetbrains/**")

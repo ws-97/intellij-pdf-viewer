@@ -5,6 +5,8 @@
     FirstTimeInForever
   </vendor>
 
+  <idea-version since-build="241.14494.150" />
+
   <depends>com.intellij.modules.platform</depends>
   <depends optional="true" config-file="texify-idea.xml">nl.rubensten.texifyidea</depends>
   <depends optional="true" config-file="cwm.xml">com.intellij.jetbrains.client</depends>

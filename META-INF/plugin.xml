@@ -1,0 +1,57 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" require-restart="true">
+  <idea-version since-build="241.14494.150" />
+  <change-notes><![CDATA[<h2>0.17.1</h2>
+
+<p>This release adds support for customizing the inverse search shortcut and the toolbar.</p>
+
+<ul><li>In the keymap, you can now change the inverse search shortcut (to navigate from pdf to LaTeX) to any other mouse shortcut</li><li>Add support for customizing the toolbar (right-click on the toolbar to open the menu)</li><li>Update dependencies and replace deprecated code</li><li>Update Sentry implementation for easy reporting of exceptions</li></ul>]]></change-notes>
+  <description><![CDATA[<p><a href="https://plugins.jetbrains.com/plugin/14494-pdf-viewer">IntelliJ PDF Viewer</a> plugin adds support for viewing PDF files in IntelliJ-based IDEs. This plugin uses recently integrated (<code>2020.2</code>) CEF (Chromium Embedded Framework) browser to render PDF documents with <a href="https://mozilla.github.io/pdf.js/">PDF.js</a> library.</p>
+
+<h2>Features</h2>
+
+<ul><li>Document navigation</li><li>Integration with <a href="https://plugins.jetbrains.com/plugin/9473-texify-idea">TeXiFy IDEA</a></li><li>Auto-refresh on document change</li><li>Text search</li><li>Document scaling</li><li>Thumbnail view</li><li>Sections list</li><li>Structure view</li><li>Presentation mode</li><li>Document information</li><li>Pages spread (even/odd)</li><li>Horizontal/vertical pages scroll directions</li><li>Customizable toolbar</li></ul>
+
+<h2>Shortcuts</h2>
+<ul><li><strong>Move editor up or down:</strong> up and down arrow keys.</li><li><strong>Move editor right or left:</strong> right and left arrow keys.</li><li><strong>Move to the next page:</strong> when the whole width of the page is in view, the right and left arrow keys will navigate to the next and previous page.</li><li><strong>Zoom in:</strong> <kbd>Ctrl</kbd> + <kbd>+</kbd>, <kbd>Ctrl</kbd> + <kbd>=</kbd>.</li><li><strong>Zoom out:</strong> <kbd>Ctrl</kbd> + <kbd>-</kbd></li><li><strong>Reset zoom:</strong> <kbd>Ctrl</kbd> + <kbd>0</kbd></li><li><strong>Enter presentation mode:</strong> <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>p</kbd></li><li><strong>Inverse search (LaTeX):</strong> <kbd>Ctrl</kbd> + <kbd>Left click</kbd> (can be customized in Settings | Keymap to other mouse shortcuts)</li></ul>
+
+<h3>Feature Notes</h3>
+
+<ul><li>Text search will work only in text-based documents. For example, it won't work in all-images documents (books scans).</li><li>For the sections list or structure view to work documents should define sections list. Otherwise, sections view won't be active, and the structure view will be empty.</li><li>Right-click on a pdf to open it in PDFium, the default Chrome PDF viewer. If you do not see a context menu, it may help to go to Help &gt; Find Action, search for Registry, set <code>pdf.viewer.use.jcef.osr.view</code> to false, and restart. See <a href="https://youtrack.jetbrains.com/issue/IJPL-59459/Context-menu-does-not-work-for-OSR-Cef-browser">IJPL-59459</a> for more details.</li><li>To view pdfs in a Code With Me session, you may need to install the PDF viewer plugin (0.17.0 or later) in the client as well. This feature is still expirimental, for more info see <a href="https://youtrack.jetbrains.com/issue/CWM-1199">CWM-1199</a>.</li></ul>
+
+
+<h2>Use cases</h2>
+
+<ul><li>Writing latex documents</li><li>Split-view code and documentation</li><li>Presentations with live-coding</li><li>...</li></ul>
+
+<h2>Providing Feedback</h2>
+
+<p>If you want to support PDF Viewer development, just <a href="https://github.com/FirstTimeInForever/intellij-pdf-viewer">give a star on GitHub</a> or write a review on the <a href="https://plugins.jetbrains.com/plugin/14494-pdf-viewer">marketplace page</a>.</p>
+
+<p>In case you encountered any bugs, feel free to create an <a href="https://github.com/FirstTimeInForever/intellij-pdf-viewer/issues">issue</a>.</p>]]></description>
+  <version>0.17.1</version>
+  <id>com.firsttimeinforever.intellij.pdf.viewer.intellij-pdf-viewer</id>
+  <name>intellij-pdf-viewer</name>
+  <vendor email="ivmposti+pdf-viewer@gmail.com" url="https://github.com/FirstTimeInForever/intellij-pdf-viewer">FirstTimeInForever</vendor>
+  <depends>com.intellij.modules.platform</depends>
+  <depends optional="true" config-file="texify-idea.xml">nl.rubensten.texifyidea</depends>
+  <depends optional="true" config-file="cwm.xml">com.intellij.jetbrains.client</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <fileType name="PDF" extensions="pdf" language="PDF" fieldName="INSTANCE" implementationClass="com.firsttimeinforever.intellij.pdf.viewer.lang.PdfFileType" />
+    <httpRequestHandler implementation="com.firsttimeinforever.intellij.pdf.viewer.jcef.PdfStaticServer" />
+    <registryKey defaultValue="false" key="pdf.viewer.debug" description="Enables PDF viewer debug mode" />
+    <registryKey defaultValue="10000" key="pdf.viewer.jcefLatchTimeout" description="Sets maximum wait time for the web-view to load" />
+    <registryKey defaultValue="false" key="pdf.viewer.enableExperimentalFeatures" description="Enables PDF viewer experimental features" />
+    <registryKey defaultValue="true" key="pdf.viewer.use.jcef.osr.view" description="Enables JCEF off-screen rendering" />
+    <applicationService serviceImplementation="com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerSettings" />
+    <applicationConfigurable instance="com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerConfigurable" displayName="PDF Viewer" />
+    <errorHandler implementation="com.firsttimeinforever.intellij.pdf.viewer.report.PdfErrorReportSubmitter" />
+    <statusBarWidgetFactory id="PdfViewer.DocumentPageStatusBarWidget" implementation="com.firsttimeinforever.intellij.pdf.viewer.ui.widgets.PdfDocumentPageStatusBarWidgetFactory" />
+    <customizableActionGroupProvider implementation="com.firsttimeinforever.intellij.pdf.viewer.actions.PdfCustomizableActionGroupProvider" />
+    <postStartupActivity implementation="com.firsttimeinforever.intellij.pdf.viewer.ui.widgets.PdfStatusBarProjectActivity" />
+    <toolWindow id="PDF Viewer" anchor="right" factoryClass="com.firsttimeinforever.intellij.pdf.viewer.ui.toolwindow.PdfViewerToolWindowFactory" icon="/icons/pdfFile.svg" />
+  </extensions>
+  <applicationListeners>
+    <listener class="com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerInvertColorsListener" topic="com.intellij.openapi.editor.colors.EditorColorsListener" />
+  </applicationListeners>
+  <xi:include href="/META-INF/actions.xml" xpointer="xpointer(/idea-plugin/*)" />
+</idea-plugin>

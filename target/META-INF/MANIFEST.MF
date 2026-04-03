@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Sentry-Version-Name: 8.17.0
+Sentry-SDK-Name: sentry.java
+Sentry-SDK-Package-Name: maven:io.sentry:sentry
+Implementation-Vendor: Sentry
+Implementation-Title: sentry
+Implementation-Version: 8.17.0
+

@@ -9,16 +9,16 @@ import java.awt.FlowLayout
 import java.awt.GridLayout
 import javax.swing.JPanel
 
-class PdfEditorControlPanel: JPanel(GridLayout()), Disposable {
+class PdfEditorControlPanel: JPanel(java.awt.BorderLayout()), Disposable {
   private val leftToolbar = createActionToolbar(
     "pdf.viewer.LeftToolbarActionGroup",
-    ActionPlaces.EDITOR_TOOLBAR,
+    ActionPlaces.UNKNOWN,  // 使用 UNKNOWN place，让 toolbar 在工具窗口中也能正常工作
     this
   )
 
   private val rightToolbar = createActionToolbar(
     "pdf.viewer.RightToolbarActionGroup",
-    ActionPlaces.EDITOR_TOOLBAR,
+    ActionPlaces.UNKNOWN,  // 使用 UNKNOWN place
     this
   )
 
@@ -27,13 +27,26 @@ class PdfEditorControlPanel: JPanel(GridLayout()), Disposable {
   init {
     leftToolbar.component.border = null
     rightToolbar.component.border = null
-    add(leftToolbar.component, Component.LEFT_ALIGNMENT)
+    
+    // 将 leftToolbar 添加到左侧 (WEST)
+    add(leftToolbar.component, java.awt.BorderLayout.WEST)
 
     rightPanel.layout = FlowLayout(FlowLayout.RIGHT, 0, 0)
-
     rightPanel.add(rightToolbar.component)
-    rightPanel.preferredSize = Dimension(Int.MAX_VALUE, 24)
-    add(rightPanel, Component.RIGHT_ALIGNMENT)
+    
+    // 将 rightPanel 添加到右侧 (EAST)
+    add(rightPanel, java.awt.BorderLayout.EAST)
+  }
+
+  /**
+   * 设置 toolbar 的 targetComponent
+   * 用于工具窗口场景，让 toolbar actions 能找到正确的上下文
+   */
+  fun setToolbarTarget(targetComponent: java.awt.Component) {
+    if (targetComponent is javax.swing.JComponent) {
+      leftToolbar.targetComponent = targetComponent
+      rightToolbar.targetComponent = targetComponent
+    }
   }
 
   override fun dispose() = Unit

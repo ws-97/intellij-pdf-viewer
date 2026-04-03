@@ -19,9 +19,22 @@ abstract class PdfAction(protected val viewModeAwareness: ViewModeAwareness = Vi
 
   override fun update(event: AnActionEvent) {
     val editor = findEditorInView(event)
+    var controller = findController(editor)
+    
+    // 如果编辑器中找不到，尝试从工具窗口中找
+    if (controller == null) {
+      val project = event.project
+      if (project != null) {
+        val toolWindow = com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("PDF Viewer")
+        val content = toolWindow?.contentManager?.selectedContent?.component as? javax.swing.JPanel
+        controller = content?.getClientProperty("PDF_CONTROLLER") as? PdfJcefPreviewController
+      }
+    }
+    
     with(event.presentation) {
-      isVisible = editor != null
-      isEnabled = findController(editor) != null
+      // 在编辑器视图或工具窗口中有 PDF 时才可见
+      isVisible = editor != null || controller != null
+      isEnabled = controller != null
     }
     adjustPresentationVisibility(event)
   }
@@ -64,7 +77,28 @@ abstract class PdfAction(protected val viewModeAwareness: ViewModeAwareness = Vi
     }
 
     fun findController(event: AnActionEvent): PdfJcefPreviewController? {
-      return findEditorInView(event)?.viewComponent?.controller
+      // 先尝试从编辑器中找
+      return findEditorInView(event)?.viewComponent?.controller ?: run {
+        // 如果找不到，尝试从工具窗口中找
+        val project = event.project
+        if (project != null) {
+          val toolWindow = com.intellij.openapi.wm.ToolWindowManager.getInstance(project)
+            .getToolWindow("PDF Viewer")
+          val content = toolWindow?.contentManager?.selectedContent
+          val mainPanel = content?.component as? javax.swing.JPanel
+          if (mainPanel != null) {
+            // 从 client property 中获取 controller
+            val controller = mainPanel.getClientProperty("PDF_CONTROLLER") as? PdfJcefPreviewController
+            if (controller != null) {
+              com.intellij.openapi.diagnostic.logger<PdfAction>().info("findController from tool window: success")
+              return controller
+            }
+          }
+        }
+        
+        com.intellij.openapi.diagnostic.logger<PdfAction>().warn("findController failed")
+        return null
+      }
     }
 
     fun findController(editor: PdfFileEditor?): PdfJcefPreviewController? {

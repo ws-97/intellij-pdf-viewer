@@ -1,0 +1,6 @@
+<idea-plugin>
+  <!-- 已禁用远程编辑支持，因为 PDF 现在在工具窗口中打开 -->
+  <!-- <extensions defaultExtensionNs="com.intellij">
+    <rdclient.fileEditorModelHandler implementation="com.firsttimeinforever.intellij.pdf.viewer.ui.editor.PdfFrontendFileEditorModelHandler" order="first" />
+  </extensions> -->
+</idea-plugin>

@@ -20,12 +20,24 @@ sealed class PdfSetSidebarViewModeAction(private val targetViewMode: SidebarView
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = PdfAction.hasEditorInView(event)
-    event.presentation.isEnabled = canBeEnabled(PdfAction.findController(event))
+    // 检查是否有编辑器或工具窗口中的控制器
+    val hasEditor = PdfAction.hasEditorInView(event)
+    val controller = PdfAction.findController(event)
+    
+    event.presentation.isVisible = hasEditor || controller != null
+    event.presentation.isEnabled = canBeEnabled(controller)
   }
 
   private fun canBeEnabled(controller: PdfJcefPreviewController?): Boolean {
-    return controller != null && targetViewMode in controller.viewProperties.availableSidebarViewModes
+    if (controller == null) return false
+    // 如果 viewProperties 还未初始化（availableSidebarViewModes 为空），默认启用 Thumbnails
+    val availableModes = controller.viewProperties.availableSidebarViewModes
+    return if (availableModes.isEmpty()) {
+      // PDF 加载中或刚加载，默认只启用 Thumbnails
+      targetViewMode == SidebarViewMode.THUMBNAILS || targetViewMode == SidebarViewMode.NONE
+    } else {
+      targetViewMode in availableModes || targetViewMode == SidebarViewMode.NONE
+    }
   }
 
   class Hide : PdfSetSidebarViewModeAction(SidebarViewMode.NONE) {

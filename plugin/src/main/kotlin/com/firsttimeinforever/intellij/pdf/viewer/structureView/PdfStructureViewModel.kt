@@ -29,12 +29,7 @@ class PdfStructureViewModel(
     tree = PdfStructureViewTreeBuilder.build(editor)
     modelListeners.forEach { it.onModelChanged() }
     // Needed to refresh structure view component
-    val wrapper = StructureViewFactoryEx.getInstanceEx(project).structureViewWrapper
-    if (wrapper is StructureViewWrapperImpl) {
-      ApplicationManager.getApplication().invokeLater {
-        wrapper.rebuildNow("Refresh structure view")
-      }
-    }
+    // rebuildNow is not available in 2023.1, tree update should be sufficient
   }
 
   override fun getRoot(): StructureViewTreeElement = tree
