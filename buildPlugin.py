@@ -7,7 +7,7 @@ from datetime import datetime
 # 我现在正在开发一款pdf浏览的idea插件，我希望能够将当前pdf的浏览进度保存在setting/pdfViewer中。 期望输出： 1.新建一个和General同样格式的栏目用来显示pdf列表 2.每一项都可以被点击，点击之后打开对应的pdf 3.每一项后面都有一个按钮，点击之后打开pdf所在的文件 4.每一项都有一个渐变色的阅读进度条
 # 定义路径
 target_dir = Path("target")
-jar_source_dir = Path("plugin/build/idea-sandbox/IC-2025.2/plugins/intellij-pdf-viewer/lib")
+jar_source_dir = Path("plugin/build/idea-sandbox/IC-2024.1/plugins/intellij-pdf-viewer/lib")
 
 # 清理并创建目标目录
 def setup_target_directory():

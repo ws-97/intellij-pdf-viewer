@@ -1,9 +1,14 @@
 package com.firsttimeinforever.intellij.pdf.viewer.ui.toolwindow
 
 import com.firsttimeinforever.intellij.pdf.viewer.lang.PdfFileType
+import com.firsttimeinforever.intellij.pdf.viewer.settings.RecentPdfService
 import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfEditorViewComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -36,14 +41,22 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
         val content = contentFactory.createContent(mainPanel, "", false)
         toolWindow.contentManager.addContent(content)
             
-        // 添加一个占位标签
-        updatePlaceholder(mainPanel)
-            
-        logger.info("Tool window created, waiting for PDF file selection...")
-            
         // 用于跟踪当前正在显示的 PDF 文件
         var currentPdfFile: VirtualFile? = null
         var currentViewComponent: PdfEditorViewComponent? = null
+            
+        // 初始检查当前是否有打开的 PDF 文件
+        val selectedFile = FileEditorManager.getInstance(project).selectedFiles.firstOrNull()
+        if (selectedFile != null && selectedFile.fileType == PdfFileType) {
+            logger.info("Initial PDF file found: ${selectedFile.path}")
+            currentPdfFile = selectedFile
+            activateToolWindow(project)
+            showPdfInToolWindow(project, selectedFile, mainPanel, toolWindow, toolWindow.disposable)
+        } else {
+            // 如果没有当前打开的 PDF，显示最近打开的 PDF 列表
+            logger.info("No PDF currently open, showing recent PDF list")
+            showRecentPdfList(project, mainPanel, toolWindow)
+        }
             
         // 监听编辑器选择变化 - 当用户在编辑器中打开 PDF 文件时触发
         val connection = project.messageBus.connect(toolWindow.disposable)
@@ -72,16 +85,6 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
                 }
             }
         )
-            
-        // 初始检查当前是否有打开的 PDF 文件
-        com.intellij.openapi.fileEditor.FileEditorManager.getInstance(project).selectedFiles.firstOrNull()?.let { file ->
-            if (file.fileType == PdfFileType) {
-                logger.info("Initial PDF file found: ${file.path}")
-                currentPdfFile = file
-                activateToolWindow(project)
-                showPdfInToolWindow(project, file, mainPanel, toolWindow, toolWindow.disposable)
-            }
-        }
     }
     
     /**
@@ -128,12 +131,14 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             // 关键：不要将 viewComponent 注册到 disposable，避免被意外清理
             // 只注册到 toolWindow.disposable，确保工具窗口关闭时才清理
             
-            // 使用 BorderLayout 让组件能完整显示 (包括顶部工具栏)
-            // 重要：移除所有可能的 MigLayout 影响，确保工具栏正常显示
-            mainPanel.layout = java.awt.BorderLayout()
+            // 使用 MigLayout 实现居中对齐
+            mainPanel.layout = MigLayout("align center center, fill")
+            
+            // 创建一个容器面板来包含工具栏和PDF内容
+            val contentContainer = JPanel(java.awt.BorderLayout())
             
             // 先添加 wrapperPanel(包含工具栏) 到 NORTH 位置
-            mainPanel.add(viewComponent.wrapperPanel, java.awt.BorderLayout.NORTH)
+            contentContainer.add(viewComponent.wrapperPanel, java.awt.BorderLayout.NORTH)
             
             // 然后添加 PDF 浏览器组件到 CENTER 位置
             val browserComponent = if (viewComponent.controller != null) {
@@ -141,7 +146,10 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             } else {
                 com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfUnsupportedViewPanel()
             }
-            mainPanel.add(browserComponent, java.awt.BorderLayout.CENTER)
+            contentContainer.add(browserComponent, java.awt.BorderLayout.CENTER)
+            
+            // 将内容容器添加到主面板并居中
+            mainPanel.add(contentContainer, "grow")
             mainPanel.revalidate()
             mainPanel.repaint()
                 
@@ -184,6 +192,48 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             errorLabel.horizontalAlignment = SwingConstants.CENTER
             mainPanel.add(errorLabel, java.awt.BorderLayout.CENTER)
         }
+    }
+    
+    /**
+     * 显示最近打开的 PDF 列表
+     */
+    private fun showRecentPdfList(project: Project, mainPanel: JPanel, toolWindow: ToolWindow) {
+        mainPanel.removeAll()
+        
+        try {
+            val recentPdfService = project.service<RecentPdfService>()
+            val recentPdfs = recentPdfService.getRecentPdfs()
+            
+            if (recentPdfs.isEmpty()) {
+                // 没有最近记录，显示提示
+                val placeholderLabel = JLabel("请在项目视图中选择 PDF 文件，或从编辑器中打开 PDF")
+                placeholderLabel.horizontalAlignment = SwingConstants.CENTER
+                mainPanel.add(placeholderLabel, java.awt.BorderLayout.CENTER)
+            } else {
+                // 创建最近 PDF 列表面板
+                val recentPanel = RecentPdfListPanel(project, recentPdfs) { filePath ->
+                    // 点击某一项时的回调
+                    logger.info("Opening recent PDF: $filePath")
+                    ApplicationManager.getApplication().invokeLater {
+                        val virtualFile = com.intellij.openapi.vfs.LocalFileSystem.getInstance()
+                            .findFileByPath(filePath)
+                        if (virtualFile != null) {
+                            val descriptor = OpenFileDescriptor(project, virtualFile)
+                            FileEditorManager.getInstance(project).openEditor(descriptor, true)
+                        }
+                    }
+                }
+                mainPanel.add(recentPanel, java.awt.BorderLayout.CENTER)
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to show recent PDF list", e)
+            val errorLabel = JLabel("加载最近 PDF 列表失败：${e.message}")
+            errorLabel.horizontalAlignment = SwingConstants.CENTER
+            mainPanel.add(errorLabel, java.awt.BorderLayout.CENTER)
+        }
+        
+        mainPanel.revalidate()
+        mainPanel.repaint()
     }
     
     private fun updatePlaceholder(mainPanel: JPanel) {
