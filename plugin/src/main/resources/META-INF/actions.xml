@@ -119,6 +119,13 @@
       <mouse-shortcut keymap="Mac OS X" keystroke="meta button1"/>
     </action>
 
+    <!-- epTranslate action -->
+    <action id="pdf.viewer.EpTranslateAction"
+            class="com.firsttimeinforever.intellij.pdf.viewer.actions.common.PdfEpTranslateAction"
+            text="epTranslate"
+            description="Open epTranslate H5 dialog">
+    </action>
+
     <!--Actions list action-->
     <action id="pdf.viewer.ActionList"
             class="com.firsttimeinforever.intellij.pdf.viewer.actions.PdfActionList"/>
@@ -206,6 +213,12 @@
       <separator/>
       <reference ref="pdf.viewer.HardReloadViewAction"/>
       <reference ref="pdf.viewer.ReloadViewAction"/>
+    </group>
+
+    <!-- Context Menu Group -->
+    <group id="pdf.viewer.ContextMenuGroup">
+      <reference ref="pdf.viewer.EpTranslateAction"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="first"/>
     </group>
   </actions>
 </idea-plugin>
