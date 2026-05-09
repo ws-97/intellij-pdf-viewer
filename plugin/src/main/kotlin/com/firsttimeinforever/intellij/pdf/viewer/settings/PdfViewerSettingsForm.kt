@@ -25,6 +25,7 @@ class PdfViewerSettingsForm : JPanel() {
   val enableDocumentAutoReload = properties.property(settings.enableDocumentAutoReload)
   val defaultSidebarViewMode = properties.property(settings.defaultSidebarViewMode)
   val useToolWindowMode = properties.property(settings.useToolWindowMode)
+  val enableBossMode = properties.property(settings.enableBossMode)
   
   private var recentPdfPanel: RecentPdfPanel? = null
 
@@ -47,9 +48,14 @@ class PdfViewerSettingsForm : JPanel() {
           .bindItem(defaultSidebarViewMode)
       }
       row {
-        checkBox("使用边缘工具窗口显示 PDF")
+        checkBox(PdfViewerBundle.message("pdf.viewer.settings.tool.window.mode"))
           .bindSelected(useToolWindowMode)
-          .comment("启用后，PDF 文件将在右侧边缘工具窗口中打开，而不是占用编辑区域")
+          .comment(PdfViewerBundle.message("pdf.viewer.settings.tool.window.mode.comment"))
+      }
+      row {
+        checkBox(PdfViewerBundle.message("pdf.viewer.settings.boss.mode"))
+          .bindSelected(enableBossMode)
+          .comment(PdfViewerBundle.message("pdf.viewer.settings.boss.mode.comment"))
       }
     }
   }
@@ -187,6 +193,7 @@ class PdfViewerSettingsForm : JPanel() {
     enableDocumentAutoReload.set(settings.enableDocumentAutoReload)
     defaultSidebarViewMode.set(settings.defaultSidebarViewMode)
     useToolWindowMode.set(settings.useToolWindowMode)
+    enableBossMode.set(settings.enableBossMode)
     invertDocumentColorsWithTheme.set(settings.invertColorsWithTheme)
     invertDocumentColors.set(settings.invertDocumentColors)
     documentColorsInvertIntensity.set(settings.documentColorsInvertIntensity)

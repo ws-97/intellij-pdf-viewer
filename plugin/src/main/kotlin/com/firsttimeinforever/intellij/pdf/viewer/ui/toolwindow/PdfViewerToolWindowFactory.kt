@@ -1,6 +1,7 @@
 package com.firsttimeinforever.intellij.pdf.viewer.ui.toolwindow
 
 import com.firsttimeinforever.intellij.pdf.viewer.lang.PdfFileType
+import com.firsttimeinforever.intellij.pdf.viewer.settings.PdfViewerBossModeListener
 import com.firsttimeinforever.intellij.pdf.viewer.settings.RecentPdfService
 import com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfEditorViewComponent
 import com.intellij.openapi.Disposable
@@ -34,6 +35,9 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
     
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         logger.info("Creating tool window content for: $TOOL_WINDOW_ID")
+            
+        // 注册老板模式监听器
+        PdfViewerBossModeListener.register(project)
             
         val contentFactory = ContentFactory.getInstance()
         // 使用 BorderLayout 让 PDF 组件能完整显示 (包括工具栏)
