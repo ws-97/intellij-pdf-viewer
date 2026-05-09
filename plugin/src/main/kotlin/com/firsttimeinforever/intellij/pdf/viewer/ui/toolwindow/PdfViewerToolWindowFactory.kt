@@ -32,23 +32,23 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
         const val TOOL_WINDOW_ID = "PDF Viewer"
         private val logger = logger<PdfViewerToolWindowFactory>()
     }
-    
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         logger.info("Creating tool window content for: $TOOL_WINDOW_ID")
-            
+
         // 注册老板模式监听器
         PdfViewerBossModeListener.register(project)
-            
+
         val contentFactory = ContentFactory.getInstance()
         // 使用 BorderLayout 让 PDF 组件能完整显示 (包括工具栏)
         val mainPanel = JPanel(java.awt.BorderLayout())
         val content = contentFactory.createContent(mainPanel, "", false)
         toolWindow.contentManager.addContent(content)
-            
+
         // 用于跟踪当前正在显示的 PDF 文件
         var currentPdfFile: VirtualFile? = null
         var currentViewComponent: PdfEditorViewComponent? = null
-            
+
         // 初始检查当前是否有打开的 PDF 文件
         val selectedFile = FileEditorManager.getInstance(project).selectedFiles.firstOrNull()
         if (selectedFile != null && selectedFile.fileType == PdfFileType) {
@@ -61,7 +61,7 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             logger.info("No PDF currently open, showing recent PDF list")
             showRecentPdfList(project, mainPanel, toolWindow)
         }
-            
+
         // 监听编辑器选择变化 - 当用户在编辑器中打开 PDF 文件时触发
         val connection = project.messageBus.connect(toolWindow.disposable)
         connection.subscribe(
@@ -82,15 +82,22 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
                     event.oldFile?.let { closedFile ->
                         if (closedFile.fileType == PdfFileType) {
                             logger.info("PDF file closed: ${closedFile.path}")
-                            // 如果关闭的是当前显示的 PDF，保持工具窗口内容不变
-                            // 因为我们在 showPdfInToolWindow 中已经处理了组件复用
+                            // 工具窗口中的 PDF 保持显示，不随编辑器关闭而关闭
+                            // 用户可以继续在工具窗口中查看该 PDF
+                            val currentContext = mainPanel.getClientProperty("PDF_VIEW_CONTEXT") as? PdfViewContext
+                            if (currentContext != null && currentContext.file == closedFile) {
+                                logger.info("PDF closed in editor but keeping it visible in tool window: ${closedFile.path}")
+                                // 不清理工具窗口内容，保持 PDF 继续显示
+                            }
                         }
                     }
                 }
             }
         )
+
+
     }
-    
+
     /**
      * 用于跟踪当前正在显示的 PDF 文件和对应的 viewComponent
      */
@@ -98,7 +105,7 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
         val file: VirtualFile,
         val viewComponent: PdfEditorViewComponent
     )
-        
+
     private fun showPdfInToolWindow(
         project: Project,
         file: VirtualFile,
@@ -108,13 +115,13 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
     ) {
         // 检查是否需要切换文件
         val currentContext = mainPanel.getClientProperty("PDF_VIEW_CONTEXT") as? PdfViewContext
-            
+
         if (currentContext != null && currentContext.file == file) {
             // 已经是当前文件，不需要切换
             logger.debug("Already showing PDF: ${file.path}")
             return
         }
-            
+
         // 清理旧的组件
         if (currentContext != null) {
             logger.info("Switching from PDF: ${currentContext.file.path} to: ${file.path}")
@@ -123,27 +130,27 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
         } else {
             logger.info("Showing new PDF: ${file.path}")
         }
-            
+
         mainPanel.removeAll()
-            
+
         try {
             // 为工具窗口创建独立的 viewComponent
             // 这样不会受到编辑器生命周期的影响
             logger.info("Creating new PdfEditorViewComponent for: ${file.path}")
             val viewComponent = com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfEditorViewComponent(project, file)
-            
+
             // 关键：不要将 viewComponent 注册到 disposable，避免被意外清理
             // 只注册到 toolWindow.disposable，确保工具窗口关闭时才清理
-            
+
             // 使用 MigLayout 实现居中对齐
             mainPanel.layout = MigLayout("align center center, fill")
-            
+
             // 创建一个容器面板来包含工具栏和PDF内容
             val contentContainer = JPanel(java.awt.BorderLayout())
-            
+
             // 先添加 wrapperPanel(包含工具栏) 到 NORTH 位置
             contentContainer.add(viewComponent.wrapperPanel, java.awt.BorderLayout.NORTH)
-            
+
             // 然后添加 PDF 浏览器组件到 CENTER 位置
             val browserComponent = if (viewComponent.controller != null) {
                 viewComponent.controller.component
@@ -151,29 +158,29 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
                 com.firsttimeinforever.intellij.pdf.viewer.ui.editor.view.PdfUnsupportedViewPanel()
             }
             contentContainer.add(browserComponent, java.awt.BorderLayout.CENTER)
-            
+
             // 将内容容器添加到主面板并居中
             mainPanel.add(contentContainer, "grow")
             mainPanel.revalidate()
             mainPanel.repaint()
-                
+
             // 保存上下文
             mainPanel.putClientProperty("PDF_VIEW_CONTEXT", PdfViewContext(file, viewComponent))
-                
+
             // 重要：不要将 viewComponent 注册到 disposable!
             // viewComponent 是可复用的 UI 容器，不应该被 dispose
             // 只注册 controller，因为它是资源密集型组件
             if (viewComponent.controller != null) {
                 Disposer.register(disposable, viewComponent.controller)
             }
-                
+
             // 关键修复：设置 toolbar 的 targetComponent 为 mainPanel
             // 这样 toolbar actions 在 update 时能找到正确的上下文
             viewComponent.controlPanel.setToolbarTarget(mainPanel)
-                
+
             // 将 controller 注册到 DataContext，让 actions 能找到它
             mainPanel.putClientProperty("PDF_CONTROLLER", viewComponent.controller)
-                
+
             // 检查控制器是否初始化成功 - 这是关键检查点
             if (viewComponent.controller == null) {
                 logger.error("Controller is null! JCEF may not be supported.")
@@ -183,7 +190,7 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             } else {
                 logger.info("✓ Controller initialized successfully for: ${file.path}")
                 logger.info("✓ Browser component: ${viewComponent.controller.component.javaClass.simpleName}")
-                
+
                 // 关键：监听控制器组件的状态，如果被 dispose 了需要重建
                 Disposer.register(viewComponent.controller) {
                     logger.warn("Controller disposed for: ${file.path}, but tool window still showing it!")
@@ -197,17 +204,17 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             mainPanel.add(errorLabel, java.awt.BorderLayout.CENTER)
         }
     }
-    
+
     /**
      * 显示最近打开的 PDF 列表
      */
     private fun showRecentPdfList(project: Project, mainPanel: JPanel, toolWindow: ToolWindow) {
         mainPanel.removeAll()
-        
+
         try {
             val recentPdfService = project.service<RecentPdfService>()
             val recentPdfs = recentPdfService.getRecentPdfs()
-            
+
             if (recentPdfs.isEmpty()) {
                 // 没有最近记录，显示提示
                 val placeholderLabel = JLabel("请在项目视图中选择 PDF 文件，或从编辑器中打开 PDF")
@@ -235,11 +242,11 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
             errorLabel.horizontalAlignment = SwingConstants.CENTER
             mainPanel.add(errorLabel, java.awt.BorderLayout.CENTER)
         }
-        
+
         mainPanel.revalidate()
         mainPanel.repaint()
     }
-    
+
     private fun updatePlaceholder(mainPanel: JPanel) {
         mainPanel.removeAll()
         val placeholderLabel = JLabel("请在项目视图中选择 PDF 文件")
@@ -248,7 +255,7 @@ class PdfViewerToolWindowFactory : ToolWindowFactory, DumbAware {
         mainPanel.revalidate()
         mainPanel.repaint()
     }
-    
+
     private fun activateToolWindow(project: Project) {
         javax.swing.SwingUtilities.invokeLater {
             ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.show {

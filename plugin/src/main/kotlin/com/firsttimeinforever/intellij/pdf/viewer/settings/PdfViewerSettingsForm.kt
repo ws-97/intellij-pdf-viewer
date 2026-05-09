@@ -26,8 +26,10 @@ class PdfViewerSettingsForm : JPanel() {
   val defaultSidebarViewMode = properties.property(settings.defaultSidebarViewMode)
   val useToolWindowMode = properties.property(settings.useToolWindowMode)
   val enableBossMode = properties.property(settings.enableBossMode)
+  val enableTabLinkage = properties.property(settings.enableTabLinkage)
   
   private var recentPdfPanel: RecentPdfPanel? = null
+  private var tabLinkagePanel: PdfTabLinkagePanel? = null
 
   private val generalSettingsGroup = panel {
     group(PdfViewerBundle.message("pdf.viewer.settings.group.general")) {
@@ -60,6 +62,16 @@ class PdfViewerSettingsForm : JPanel() {
     }
   }
   
+  private val tabLinkageGroup = panel {
+    group("PDF 与编辑器 Tab 关联") {
+      row {
+        checkBox("启用 Tab 关联功能")
+          .bindSelected(enableTabLinkage)
+          .comment("启用后，PDF 隐藏/显示时会自动关闭/打开关联的编辑器 Tab")
+      }
+    }
+  }
+  
   // 最近浏览的 PDF 面板组 - 单独创建以便延迟初始化
   private fun createRecentPdfGroup(): JPanel {
     return panel {
@@ -75,6 +87,19 @@ class PdfViewerSettingsForm : JPanel() {
         val panelToUse = recentPdfPanel ?: run {
           initRecentPdfPanel()
           recentPdfPanel!!
+        }
+        cell(panelToUse).align(AlignX.FILL).resizableColumn()
+      }
+    }
+  }
+  
+  // Tab 关联配置面板组
+  private fun createTabLinkageGroup(): JPanel {
+    return panel {
+      row {
+        val panelToUse = tabLinkagePanel ?: run {
+          initTabLinkagePanel()
+          tabLinkagePanel!!
         }
         cell(panelToUse).align(AlignX.FILL).resizableColumn()
       }
@@ -165,10 +190,13 @@ class PdfViewerSettingsForm : JPanel() {
 
   init {
     layout = BorderLayout()
-    // 先初始化最近 PDF 面板，确保在添加到 UI 之前已经准备好
+    // 先初始化面板
     initRecentPdfPanel()
+    initTabLinkagePanel()
+    
     add(panel {
       row { cell(generalSettingsGroup).align(AlignX.FILL) }
+      row { cell(createTabLinkageGroup()).align(AlignX.FILL) }
       row { cell(createRecentPdfGroup()).align(AlignX.FILL) }
       row { cell(invertColorsGroup).align(AlignX.FILL) }
       row { cell(customColorsGroup).align(AlignX.FILL) }
@@ -178,6 +206,12 @@ class PdfViewerSettingsForm : JPanel() {
   fun initRecentPdfPanel() {
     if (recentPdfPanel == null) {
       recentPdfPanel = RecentPdfPanel()
+    }
+  }
+  
+  fun initTabLinkagePanel() {
+    if (tabLinkagePanel == null) {
+      tabLinkagePanel = PdfTabLinkagePanel(com.intellij.openapi.project.ProjectManager.getInstance().openProjects.firstOrNull() ?: return)
     }
   }
   
@@ -194,6 +228,7 @@ class PdfViewerSettingsForm : JPanel() {
     defaultSidebarViewMode.set(settings.defaultSidebarViewMode)
     useToolWindowMode.set(settings.useToolWindowMode)
     enableBossMode.set(settings.enableBossMode)
+    enableTabLinkage.set(settings.enableTabLinkage)
     invertDocumentColorsWithTheme.set(settings.invertColorsWithTheme)
     invertDocumentColors.set(settings.invertDocumentColors)
     documentColorsInvertIntensity.set(settings.documentColorsInvertIntensity)

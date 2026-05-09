@@ -86,7 +86,7 @@ class PdfSearchPanel(private val viewComponent: PdfEditorViewComponent): JPanel(
     searchTextArea.textArea.document.addDocumentListener(object : DocumentListenerAdapter() {
       override fun insertUpdate(event: DocumentEvent) {
         when {
-          searchText.isNotEmpty() -> PdfActionUtils.performAction(findForwardAction, searchTextArea.textArea)
+          searchText.isNotEmpty() -> PdfActionUtils.performAction(findForwardAction, searchTextArea.textArea, ActionPlaces.UNKNOWN)
           else -> {
             viewComponent.controller?.releaseSearchHighlighting()
             updateResults(0, 0)
@@ -133,7 +133,7 @@ class PdfSearchPanel(private val viewComponent: PdfEditorViewComponent): JPanel(
     updateResults(0, 0)
     registerActions()
     if (searchText.isNotEmpty()) {
-      PdfActionUtils.performAction(findForwardAction, searchTextArea.textArea)
+      PdfActionUtils.performAction(findForwardAction, searchTextArea.textArea, ActionPlaces.UNKNOWN)
     }
   }
 
@@ -211,7 +211,7 @@ class PdfSearchPanel(private val viewComponent: PdfEditorViewComponent): JPanel(
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       holdState = state
-      PdfActionUtils.performAction(findForwardAction, this@PdfSearchPanel)
+      PdfActionUtils.performAction(findForwardAction, this@PdfSearchPanel, ActionPlaces.UNKNOWN)
     }
   }
 

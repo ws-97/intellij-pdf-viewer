@@ -21,21 +21,21 @@ internal object PdfActionUtils {
     return toolbar
   }
 
-  fun performAction(action: AnAction, component: Component) {
+  fun performAction(action: AnAction, component: Component, place: String = ActionPlaces.UNKNOWN) {
     val context = DataManager.getInstance().getDataContext(component)
     ActionUtil.invokeAction(
       action,
       context,
-      ActionPlaces.UNKNOWN,
+      place,
       null,
       null
     )
   }
 
-  fun performAction(actionId: String, component: Component) {
+  fun performAction(actionId: String, component: Component, place: String = ActionPlaces.UNKNOWN) {
     val manager = ActionManager.getInstance()
     val action = manager.getAction(actionId)
     checkNotNull(action)
-    performAction(action, component)
+    performAction(action, component, place)
   }
 }

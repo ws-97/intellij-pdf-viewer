@@ -23,6 +23,9 @@ class PdfViewerSettings : PersistentStateComponent<PdfViewerSettings> {
   var invertColorsWithTheme = false
   var useToolWindowMode = true
   var enableBossMode = true
+  var enableTabLinkage = true
+  // PDF路径 -> 关联的Tab文件路径列表
+  var pdfTabLinkageMap: MutableMap<String, MutableList<String>> = mutableMapOf()
 
   var defaultSidebarViewMode: SidebarViewMode = SidebarViewMode.THUMBNAILS
 

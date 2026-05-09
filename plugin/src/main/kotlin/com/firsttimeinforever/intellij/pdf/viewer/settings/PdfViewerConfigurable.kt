@@ -16,6 +16,8 @@ class PdfViewerConfigurable : Configurable {
       settings.enableDocumentAutoReload != enableDocumentAutoReload.get() ||
         settings.defaultSidebarViewMode != defaultSidebarViewMode.get() ||
         settings.useToolWindowMode != useToolWindowMode.get() ||
+        settings.enableBossMode != enableBossMode.get() ||
+        settings.enableTabLinkage != enableTabLinkage.get() ||
         settings.invertColorsWithTheme != invertDocumentColorsWithTheme.get() ||
         settings.invertDocumentColors != invertDocumentColors.get() ||
         settings.documentColorsInvertIntensity != documentColorsInvertIntensity.get() ||
@@ -34,6 +36,8 @@ class PdfViewerConfigurable : Configurable {
       enableDocumentAutoReload = settingsForm?.enableDocumentAutoReload?.get() ?: enableDocumentAutoReload
       defaultSidebarViewMode = settingsForm?.defaultSidebarViewMode?.get() ?: defaultSidebarViewMode
       useToolWindowMode = settingsForm?.useToolWindowMode?.get() ?: useToolWindowMode
+      enableBossMode = settingsForm?.enableBossMode?.get() ?: enableBossMode
+      enableTabLinkage = settingsForm?.enableTabLinkage?.get() ?: enableTabLinkage
       invertColorsWithTheme = settingsForm?.invertDocumentColorsWithTheme?.get() ?: invertColorsWithTheme
       invertDocumentColors = settingsForm?.invertDocumentColors?.get() ?: invertDocumentColors
       documentColorsInvertIntensity = settingsForm?.documentColorsInvertIntensity?.get() ?: documentColorsInvertIntensity
