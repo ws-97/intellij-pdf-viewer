@@ -30,6 +30,7 @@ class PdfViewerSettingsForm : JPanel() {
   
   private var recentPdfPanel: RecentPdfPanel? = null
   private var tabLinkagePanel: PdfTabLinkagePanel? = null
+  private var autoScrollSpeedPanel: PdfAutoScrollSpeedPanel? = null
 
   private val generalSettingsGroup = panel {
     group(PdfViewerBundle.message("pdf.viewer.settings.group.general")) {
@@ -100,6 +101,19 @@ class PdfViewerSettingsForm : JPanel() {
         val panelToUse = tabLinkagePanel ?: run {
           initTabLinkagePanel()
           tabLinkagePanel!!
+        }
+        cell(panelToUse).align(AlignX.FILL).resizableColumn()
+      }
+    }
+  }
+  
+  // 自动滚动速度配置面板组
+  private fun createAutoScrollSpeedGroup(): JPanel {
+    return panel {
+      row {
+        val panelToUse = autoScrollSpeedPanel ?: run {
+          initAutoScrollSpeedPanel()
+          autoScrollSpeedPanel!!
         }
         cell(panelToUse).align(AlignX.FILL).resizableColumn()
       }
@@ -193,10 +207,12 @@ class PdfViewerSettingsForm : JPanel() {
     // 先初始化面板
     initRecentPdfPanel()
     initTabLinkagePanel()
+    initAutoScrollSpeedPanel()
     
     add(panel {
       row { cell(generalSettingsGroup).align(AlignX.FILL) }
       row { cell(createTabLinkageGroup()).align(AlignX.FILL) }
+      row { cell(createAutoScrollSpeedGroup()).align(AlignX.FILL) }
       row { cell(createRecentPdfGroup()).align(AlignX.FILL) }
       row { cell(invertColorsGroup).align(AlignX.FILL) }
       row { cell(customColorsGroup).align(AlignX.FILL) }
@@ -212,6 +228,12 @@ class PdfViewerSettingsForm : JPanel() {
   fun initTabLinkagePanel() {
     if (tabLinkagePanel == null) {
       tabLinkagePanel = PdfTabLinkagePanel(com.intellij.openapi.project.ProjectManager.getInstance().openProjects.firstOrNull() ?: return)
+    }
+  }
+  
+  fun initAutoScrollSpeedPanel() {
+    if (autoScrollSpeedPanel == null) {
+      autoScrollSpeedPanel = PdfAutoScrollSpeedPanel()
     }
   }
   

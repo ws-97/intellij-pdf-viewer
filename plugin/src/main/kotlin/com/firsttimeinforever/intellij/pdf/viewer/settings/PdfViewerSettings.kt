@@ -26,6 +26,8 @@ class PdfViewerSettings : PersistentStateComponent<PdfViewerSettings> {
   var enableTabLinkage = true
   // PDF路径 -> 关联的Tab文件路径列表
   var pdfTabLinkageMap: MutableMap<String, MutableList<String>> = mutableMapOf()
+  // PDF路径 -> 自动滚动速度 (1-5)
+  var pdfAutoScrollSpeedMap: MutableMap<String, Int> = mutableMapOf()
 
   var defaultSidebarViewMode: SidebarViewMode = SidebarViewMode.THUMBNAILS
 

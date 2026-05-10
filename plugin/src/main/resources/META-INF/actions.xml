@@ -119,6 +119,20 @@
       <mouse-shortcut keymap="Mac OS X" keystroke="meta button1"/>
     </action>
 
+    <!-- Auto scroll actions-->
+    <action id="pdf.viewer.AutoScrollAction"
+            class="com.firsttimeinforever.intellij.pdf.viewer.actions.view.PdfAutoScrollAction"
+            icon="/icons/actions/autoScroll.svg">
+    </action>
+    <action id="pdf.viewer.IncreaseAutoScrollSpeedAction"
+            class="com.firsttimeinforever.intellij.pdf.viewer.actions.view.PdfIncreaseAutoScrollSpeedAction"
+            icon="AllIcons.General.Add">
+    </action>
+    <action id="pdf.viewer.DecreaseAutoScrollSpeedAction"
+            class="com.firsttimeinforever.intellij.pdf.viewer.actions.view.PdfDecreaseAutoScrollSpeedAction"
+            icon="AllIcons.General.Remove">
+    </action>
+
     <!-- epTranslate action -->
     <action id="pdf.viewer.EpTranslateAction"
             class="com.firsttimeinforever.intellij.pdf.viewer.actions.common.PdfEpTranslateAction"
@@ -170,6 +184,10 @@
       <separator/>
       <reference ref="pdf.viewer.ToggleScrollDirectionAction"/>
       <separator/>
+      <reference ref="pdf.viewer.AutoScrollAction"/>
+      <reference ref="pdf.viewer.IncreaseAutoScrollSpeedAction"/>
+      <reference ref="pdf.viewer.DecreaseAutoScrollSpeedAction"/>
+      <separator/>
       <reference ref="pdf.viewer.ToggleDocumentPresentationAction"/>
       <reference ref="pdf.viewer.ToggleIdePresentationModeAction"/>
       <separator/>
@@ -205,6 +223,10 @@
       <reference ref="pdf.viewer.RotateCounterClockwiseAction"/>
       <separator/>
       <reference ref="pdf.viewer.ToggleScrollDirectionAction"/>
+      <separator/>
+      <reference ref="pdf.viewer.AutoScrollAction"/>
+      <reference ref="pdf.viewer.IncreaseAutoScrollSpeedAction"/>
+      <reference ref="pdf.viewer.DecreaseAutoScrollSpeedAction"/>
       <separator/>
       <reference ref="pdf.viewer.ToggleDocumentPresentationAction"/>
       <reference ref="pdf.viewer.ToggleIdePresentationModeAction"/>
